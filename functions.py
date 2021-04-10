@@ -1,19 +1,14 @@
-import tkinter as tk
-from tkinter import ttk
-from tkinter import *
-
-import turtle
 import os
 import ast
 import tkinter as tk
 from tkinter import *
 from tkinter import ttk
+from tkcalendar import *
 
-# Total Players in the ladder
+# Total Players Data Structures
 total_players_list = []
 total_players_dict = {}
 upcoming_match = {}
-
 
 def loadPlayers():
     #  open ladder.txt in read mode
@@ -21,16 +16,15 @@ def loadPlayers():
     # load list data
     for line in f:
         total_players_list.append(line.strip())
-
+    return total_players_list    
 
 loadPlayers()
-
-
+    
 def registerPlayerList():
     root = Tk()
     root.title("Register a player")
     root.geometry("300x400")
-    label = Label(root,text="Current Players in Ladder", font=("Times New Roman", 10))
+    label = Label(root,text="Current Players in Ladder", font=("Times New Roman bold", 10))
     label.pack(pady=5)
     players_listbox = Listbox(root, width=40)
     players_listbox.pack(pady=5)
@@ -207,34 +201,54 @@ def issueChallenge():
         playerTwo_listbox.insert("end", players)    
 
     def selectPlayer1():
-        player1.config(text=selected_item_p1)
         return selected_item_p1
     playerOne_listbox.bind('<<ListboxSelect>>', selectPlayerOne)
     
     def selectPlayer2():
-        player2.config(text=selected_item_p2)
         return selected_item_p2
     playerTwo_listbox.bind('<<ListboxSelect>>', selectPlayerTwo)
 
+    # Datepicker
+    Date_frame = Frame(root, bg="grey")
+    Date_frame.grid(row=5, column=1, sticky=NSEW) 
+    Date_label = Label(root, text="DATE OF MATCH",font=("Times New Roman bold",10))
+    Date_label.grid(row=4, column=1)
+    cal = Calendar(Date_frame, selectmode="day", year=2021, month=5, day=22)
+    cal.grid(row=6, column=1, columnspan=2, sticky=W)
+    
+    def grab_date():
+        return cal.get_date()
+
+    # Date Button
+    select_date_btn = Button(
+        root, text="Select Date", command=grab_date)
+    select_date_btn.grid(row=7, column=1, pady=5)
+
     def createMatch():
-        upcoming_match[len(upcoming_match) + 1] = {'Player1': selectPlayer1(), "VS": 'VS', 'Player2': selectPlayer2(), "Date": 0}
+        upcoming_match[len(upcoming_match) + 1] = {'Player1': selectPlayer1(), "VS": 'VS', 'Player2': selectPlayer2(), "Date": cal.get_date()}
+        
         f = open("upcoming_match.txt", 'a')
         f.write(str(upcoming_match))
         f.write("\n")
         f.close()
 
+        # Delete first line if there is more than 1 line
+        with open('upcoming_match.txt', 'r') as fin:
+            lines = fin.read().splitlines(True)
+        if len(lines) > 1 and len(lines) != 1:
+            with open('upcoming_match.txt', 'w') as fout:
+                fout.writelines(lines[1:])
 
-    # select P1
+    # Player1 Button
     select_plyr_btn = Button(
         root, text="Select Player 1", command=selectPlayer1)
     select_plyr_btn.grid(row=3, column=0)
 
-    # select P2
+    # Player2 Button
     select_plyr_btn = Button(
         root, text="Select Player 2", command=selectPlayer2)
     select_plyr_btn.grid(row=3, column=2)
 
-    # Confirm Match
-    cfm_match_btn = Button(
-        root, text="Create Match", command=createMatch)
-    cfm_match_btn.grid(row=4, column=1)
+    # Confirm Match Button
+    cfm_match_btn = Button(root, text="Create Match", pady=10, padx=20, command=createMatch)
+    cfm_match_btn.grid(row=8, column=1, pady=5)
