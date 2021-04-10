@@ -53,20 +53,24 @@ def registerPlayerList():
             total_players_list.append(player_to_register)
 
             # Add to player_dict.txt
-            total_players_dict[len(total_players_dict) + 1] = {'name': e.get(), 'position': len(total_players_dict) + 1,
-                                                               "match_played": 0, "match_won": 0, "match_loss": 0}
-            # save dictionary to text file
-            os.remove("player_dict.txt")
-            player_dict = open("player_dict.txt", 'a')
-            player_dict.write(str(total_players_dict))
-            player_dict.write("\n")
-            player_dict.close()
+            total_players_dict[len(total_players_dict) + 1] = {'name': e.get(), 'position': len(total_players_dict) + 1,"match_played": 0, "match_won": 0, "match_loss": 0}
+            
+            f = open("player_dict.txt", 'a')
+            f.write(str(total_players_dict))
+            f.write("\n")
+            f.close()
+
+            # Delete first line if there is more than 1 line
+            with open('player_dict.txt', 'r') as fin:
+                lines = fin.read().splitlines(True)
+            if len(lines) > 1 and len(lines) != 1:
+                with open('player_dict.txt', 'w') as fout:
+                    fout.writelines(lines[1:])
 
             # Refresh Player ListBox
             players_listbox.delete(0, END)
             for players in total_players_list:
                 players_listbox.insert("end", players)
-                
         # Entry Buttons
         Register_plyr_name_btn = Button(
             root1, text="Enter Player to Register", command=registerPlayerName)
