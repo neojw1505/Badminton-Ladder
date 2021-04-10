@@ -1,9 +1,20 @@
 
 from functions import *
+
 #====Initialize====#
 window = tk.Tk()
 window.geometry("1000x800")
 window.title("Mini Project: A Badminton Ladder")
+
+def refreshLadder():
+    if os.path.getsize("upcoming_match.txt") > 0:
+        file = open("upcoming_match.txt", "r")
+        contents = file.read()
+        upcoming_match = ast.literal_eval(contents)
+        file.close()
+    upcoming_match_tree.delete(*upcoming_match_tree.get_children())
+    for id,match in upcoming_match.items():
+        upcoming_match_tree.insert(parent='', index='end', text="Parent", values=(id,match['Player1'], match['VS'], match['Player2'], match['Date']))
 
 #=======Title=======#
 title = tk.Label(text="A Badminton Ladder",  font=("Times New Roman", 30))
@@ -13,7 +24,7 @@ title.grid(pady=5)
 Ladder_label = tk.Label(text="Ranking", font=("Times New Roman", 20))
 Ladder_label.grid(column=6, row=1, pady=5)
 Ladder = ttk.Treeview(window)
-Ladder.grid(column=6, row=2, padx=20)
+Ladder.grid(column=6, row=2, padx=100)
 
 Ladder['columns'] = ("Rank", "Name")
 
@@ -24,6 +35,9 @@ Ladder.heading("Name", text="Name", anchor=CENTER)
 Ladder.column('#0', width=0, stretch=NO)
 Ladder.column("Rank", width="60", anchor=CENTER)
 Ladder.column("Name", width="120", anchor=CENTER)
+
+for id,player in enumerate(total_players_list):
+    Ladder.insert(parent='', index='end', text="Parent", values=(id+1,player))
 
 #=======Upcoming Matches=======#
 upcoming_match_tree_label = tk.Label(text="Upcoming Matches", font=("Times New Roman", 20))
@@ -52,18 +66,31 @@ upcoming_match_scroll.grid(column=5, row=2)
 upcoming_match_tree.configure(yscrollcommand=upcoming_match_scroll.set)
 upcoming_match_scroll.configure(command=upcoming_match_tree.yview)
 
+if os.path.getsize("upcoming_match.txt") > 0:
+        file = open("upcoming_match.txt", "r")
+        contents = file.read()
+        upcoming_match = ast.literal_eval(contents)
+        file.close()
+
+for id,match in upcoming_match.items():
+    upcoming_match_tree.insert(parent='', index='end', text="Parent", values=(id,match['Player1'], match['VS'], match['Player2'], match['Date']))
+upcoming_match_tree.grid(column=0, row=2, columnspan=5)
+
 #=======Buttons=======#
+btn_refresh_ladder = tk.Button(window,text="Refresh", bg="white", command=refreshLadder)
+btn_refresh_ladder.grid(row=3, column=0, padx=5) 
+
 btn_frame = Frame(window, width=1000, height=60, bg="grey")
-btn_frame.grid(row=3, column=0,sticky=NSEW)
+btn_frame.grid(row=4, column=0,sticky=NSEW)
 
-button1 = tk.Button(btn_frame,text="Register", bg="green", command=registerPlayerList)
-button1.grid(row=2, column=1, padx=5) 
+btn_register = tk.Button(btn_frame,text="Register", bg="green", command=registerPlayerList)
+btn_register.grid(row=4, column=1, padx=5) 
 
-button2 = tk.Button(btn_frame,text="Withdraw", bg="red", command=withdrawPlayerList)
-button2.grid(row=2, column=2, padx=5)
+btn_withdraw = tk.Button(btn_frame,text="Withdraw", bg="red", command=withdrawPlayerList)
+btn_withdraw.grid(row=4, column=2, padx=5)
 
-button3 = tk.Button(btn_frame,text="Issue Challenge", bg="yellow", command=issueChallenge)
-button3.grid(row=2, column=3, padx=5)
+btn_challenge = tk.Button(btn_frame,text="Issue Challenge", bg="yellow", command=issueChallenge)
+btn_challenge.grid(row=4, column=3, padx=5)
 
 
 window.mainloop()

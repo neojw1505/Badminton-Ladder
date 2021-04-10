@@ -33,13 +33,13 @@ def registerPlayerList():
     # add to total_players_list 
     def registerPlayer():
         root1 = Tk()
+        root1.title("Register a player")
         e = Entry(root1, width='80')
         e.pack()
 
         def registerPlayerName():
             # Labels
-            eLabel = Label(root1, text="Player: " +
-                           e.get() + " is registered!")
+            eLabel = Label(root1, text="Player: " + e.get() + " is registered!")
             eLabel.pack()
             player_to_register = e.get()
 
@@ -62,11 +62,6 @@ def registerPlayerList():
             player_dict.write("\n")
             player_dict.close()
 
-            # Clear List Box
-            players_listbox.delete(0, END)
-            # Recreate List Box without removed player
-            for players in total_players_list:
-                players_listbox.insert("end", players)
         # Entry Buttons
         Register_plyr_name_btn = Button(
             root1, text="Enter Player to Register", command=registerPlayerName)
@@ -157,10 +152,10 @@ def withdrawPlayerList():
         # Recreate List Box without removed player
         for players in total_players_list:
             players_listbox.insert("end", players)
+
     withdraw_plyr_btn = Button(
         root, text="Click to Withdraw", command=withdrawPlayer)
     withdraw_plyr_btn.pack(pady=10)
-
 
 def issueChallenge():
 
@@ -176,23 +171,22 @@ def issueChallenge():
     
     root = Tk()
     root.title('Create a Match')
-    root.geometry("500x500")
+    root.geometry("700x550")
 
-    playerOne_listbox = Listbox(root,width=30)
-    playerOne_listbox.grid(row=1, column=0, padx=5)
-    vslabel = Label(root, text="VS" )
-    vslabel.grid(row=1, column=1, padx=10)
-    playerTwo_listbox = Listbox(root,width=30)
-    playerTwo_listbox.grid(row=1, column=2, padx=5)
-
-    player1_label = Label(root, text="PLAYER 1",font=("Times New Roman",10))
+    # Player One ListBox
+    player1_label = Label(root, text="PLAYER 1",font=("Times New Roman bold",10))
     player1_label.grid(row=0, column=0)
-    player1 = Label(root, text="")
-    player1.grid(row=0, column=0, pady=2)
-    player2_label = Label(root, text="PLAYER 2",font=("Times New Roman",10))
+    playerOne_listbox = Listbox(root,width=35)
+    playerOne_listbox.grid(row=1, column=0, padx=5)
+
+    vslabel = Label(root, text="VS", font=("Times New Roman bold",20))
+    vslabel.grid(row=1, column=1, padx=10)
+
+    # Player Two ListBox
+    playerTwo_listbox = Listbox(root,width=35)
+    playerTwo_listbox.grid(row=1, column=2, padx=5)
+    player2_label = Label(root, text="PLAYER 2",font=("Times New Roman bold",10))
     player2_label.grid(row=0, column=2)
-    player2 = Label(root, text="")
-    player2.grid(row=0, column=2, pady=2)
 
     for players in total_players_list:
         playerOne_listbox.insert("end", players)
