@@ -62,6 +62,11 @@ def registerPlayerList():
             player_dict.write("\n")
             player_dict.close()
 
+            # Refresh Player ListBox
+            players_listbox.delete(0, END)
+            for players in total_players_list:
+                players_listbox.insert("end", players)
+                
         # Entry Buttons
         Register_plyr_name_btn = Button(
             root1, text="Enter Player to Register", command=registerPlayerName)
