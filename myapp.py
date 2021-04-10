@@ -62,7 +62,7 @@ button1.grid(row=2, column=1, padx=5)
 button2 = tk.Button(btn_frame,text="Withdraw", bg="red", command=withdrawPlayerList)
 button2.grid(row=2, column=2, padx=5)
 
-button3 = tk.Button(btn_frame,text="Issue Challenge", bg="yellow")
+button3 = tk.Button(btn_frame,text="Issue Challenge", bg="yellow", command=issueChallenge)
 button3.grid(row=2, column=3, padx=5)
 
 

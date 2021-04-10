@@ -29,13 +29,14 @@ loadPlayers()
 def registerPlayerList():
     root = Tk()
     root.title("Register a player")
-    root.geometry("400x400")
-    players_listbox = Listbox(root)
+    root.geometry("300x400")
+    label = Label(root,text="Current Players in Ladder", font=("Times New Roman", 10))
+    label.pack(pady=5)
+    players_listbox = Listbox(root, width=40)
     players_listbox.pack(pady=5)
     for players in total_players_list:
         players_listbox.insert("end", players)
-    # add to total_players_list list
-
+    # add to total_players_list 
     def registerPlayer():
         root1 = Tk()
         e = Entry(root1, width='80')
@@ -151,8 +152,6 @@ def withdrawPlayerList():
                 if p_info[key] == player_to_remove:
                     idx = id
                     del total_players_dict[idx]
-                    # Recreate player_dict.txt
-                    os.remove("player_dict.txt")
                     player_dict = open("player_dict.txt", 'a')
                     player_dict.write(str(total_players_dict))
                     player_dict.write("\n")
@@ -169,60 +168,73 @@ def withdrawPlayerList():
     withdraw_plyr_btn.pack(pady=10)
 
 
-def populatePlayersInListBox():
-    root = Tk()
-    root.title('Player1 VS Player2')
-    root.geometry("400x400")
-    players_listbox = Listbox(root)
-    players_listbox.grid(row=0, column=300)
+def issueChallenge():
 
-    player1_label = Label(root, text="Player 1")
-    player1_label.grid(row=1, column=1, pady=2)
+    def selectPlayerOne(event):
+        global selected_item_p1
+        index = playerOne_listbox.curselection()
+        selected_item_p1 = playerOne_listbox.get(index)
+
+    def selectPlayerTwo(event):
+        global selected_item_p2
+        index = playerTwo_listbox.curselection()
+        selected_item_p2 = playerTwo_listbox.get(index)
+    
+    root = Tk()
+    root.title('Create a Match')
+    root.geometry("500x500")
+
+    playerOne_listbox = Listbox(root,width=30)
+    playerOne_listbox.grid(row=1, column=0, padx=5)
+    vslabel = Label(root, text="VS" )
+    vslabel.grid(row=1, column=1, padx=10)
+    playerTwo_listbox = Listbox(root,width=30)
+    playerTwo_listbox.grid(row=1, column=2, padx=5)
+
+    player1_label = Label(root, text="PLAYER 1",font=("Times New Roman",10))
+    player1_label.grid(row=0, column=0)
     player1 = Label(root, text="")
-    player1.grid(row=2, column=1, pady=2)
-    versus_label = Label(root, text="VS")
-    versus_label.grid(row=1, column=2, pady=2)
-    player2_label = Label(root, text="Player 2")
-    player2_label.grid(row=1, column=3, pady=2)
+    player1.grid(row=0, column=0, pady=2)
+    player2_label = Label(root, text="PLAYER 2",font=("Times New Roman",10))
+    player2_label.grid(row=0, column=2)
     player2 = Label(root, text="")
-    player2.grid(row=2, column=3, pady=2)
+    player2.grid(row=0, column=2, pady=2)
+
     for players in total_players_list:
-        players_listbox.insert("end", players)
+        playerOne_listbox.insert("end", players)
+
+    for players in total_players_list:
+        playerTwo_listbox.insert("end", players)    
 
     def selectPlayer1():
-        sel_player1 = players_listbox.curselection()
-        player1.config(text=players_listbox.get(sel_player1))
-
+        player1.config(text=selected_item_p1)
+        return selected_item_p1
+    playerOne_listbox.bind('<<ListboxSelect>>', selectPlayerOne)
+    
     def selectPlayer2():
-        sel_player2 = players_listbox.curselection()
-        player2.config(text=players_listbox.get(sel_player2))
+        player2.config(text=selected_item_p2)
+        return selected_item_p2
+    playerTwo_listbox.bind('<<ListboxSelect>>', selectPlayerTwo)
 
     def createMatch():
-        upcoming_match[len(
-            upcoming_match) + 1] = {'Player1': player1.config(text=players_listbox.get(sel_player1)), "VS": 'VS', 'Player2': player2.config(text=players_listbox.get(sel_player2)), "Date": 0}
+        upcoming_match[len(upcoming_match) + 1] = {'Player1': selectPlayer1(), "VS": 'VS', 'Player2': selectPlayer2(), "Date": 0}
         f = open("upcoming_match.txt", 'a')
         f.write(str(upcoming_match))
         f.write("\n")
         f.close()
 
-        # save dictionary to text file
-        # os.remove("upcoming_match.txt")
-        # f = open("upcoming_match.txt", 'a')
-        # f.write(str(upcoming_match))
-        # f.write("\n")
-        # f.close()
 
     # select P1
     select_plyr_btn = Button(
         root, text="Select Player 1", command=selectPlayer1)
-    select_plyr_btn.grid(row=200, column=200)
+    select_plyr_btn.grid(row=3, column=0)
 
     # select P2
     select_plyr_btn = Button(
         root, text="Select Player 2", command=selectPlayer2)
-    select_plyr_btn.grid(row=200, column=400)
+    select_plyr_btn.grid(row=3, column=2)
 
     # Confirm Match
     cfm_match_btn = Button(
         root, text="Create Match", command=createMatch)
-    cfm_match_btn.grid(row=300, column=300)
+    cfm_match_btn.grid(row=4, column=1)
