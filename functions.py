@@ -81,16 +81,16 @@ def registerPlayerList():
     Register_plyr_btn.pack(pady=10)
 
 
-def viewAllPlayers():
+def viewPlayerStats():
     # Display Player Treeview
     ws = Tk()
-    ws.title('PythonGuides')
-    ws.geometry('400x300')
+    ws.title('All Player\'s Information')
+    ws.geometry('600x300')
     players_tree = ttk.Treeview(ws)
 
     # Define columns
     players_tree['columns'] = (
-        "Name", "Position", "Match Played", "Won", "Loss")
+        "Name", "Position", "Match Played", "Won", "Loss", "WinRate(%)")
 
     # Column Headings
     players_tree.heading('#0', text='', anchor=CENTER)
@@ -99,6 +99,7 @@ def viewAllPlayers():
     players_tree.heading("Match Played", text="Match Played", anchor=W)
     players_tree.heading("Won", text="Won", anchor=CENTER)
     players_tree.heading("Loss", text="Loss", anchor=CENTER)
+    players_tree.heading("WinRate(%)", text="WinRate(%)", anchor=CENTER)
 
     # Format columns
     players_tree.column('#0', width=0, stretch=NO)
@@ -107,6 +108,7 @@ def viewAllPlayers():
     players_tree.column("Match Played", anchor=CENTER, width=80)
     players_tree.column("Won", anchor=CENTER, width=40)
     players_tree.column("Loss", anchor=CENTER, width=40)
+    players_tree.column("WinRate(%)", anchor=CENTER, width=80)
 
     # Add Data
     if os.path.getsize("player_dict.txt") > 0:
@@ -115,10 +117,13 @@ def viewAllPlayers():
         total_players_dict = ast.literal_eval(contents)
         file.close()
     for p_info in total_players_dict.values():
+        if p_info['match_played'] == 0:
+            winRate = 0
+        else:
+            winRate = p_info['match_won']/p_info['match_played']*100
         players_tree.insert(parent='', index='end', text="Parent", values=(
-            p_info['name'], p_info['position'], p_info['match_played'], p_info['match_won'], p_info['match_loss']))
+            p_info['name'], p_info['position'], p_info['match_played'], p_info['match_won'], p_info['match_loss'],winRate))
         players_tree.pack()
-
 
 def withdrawPlayerList():
     root = Tk()
@@ -170,62 +175,130 @@ def issueChallenge():
 
     def selectPlayerOne(event):
         global selected_item_p1
-        index = playerOne_listbox.curselection()
-        selected_item_p1 = playerOne_listbox.get(index)
+        selected_item_p1 = playerOne_Tree.focus()
+        selected_item_p1 = playerOne_Tree.item(selected_item_p1)['values']
 
     def selectPlayerTwo(event):
         global selected_item_p2
-        index = playerTwo_listbox.curselection()
-        selected_item_p2 = playerTwo_listbox.get(index)
+        selected_item_p2 = playerTwo_Tree.focus()
+        selected_item_p2 = playerTwo_Tree.item(selected_item_p2)['values']
     
     root = Tk()
     root.title('Create a Match')
-    root.geometry("700x550")
+    root.geometry("800x650")
 
-    # Player One ListBox
-    player1_label = Label(root, text="PLAYER 1",font=("Times New Roman bold",10))
+    # Player One Tree
+    player1_label = Label(root, text="PLAYER 1",font=("Times New Roman bold",15))
     player1_label.grid(row=0, column=0)
-    playerOne_listbox = Listbox(root,width=35)
-    playerOne_listbox.grid(row=1, column=0, padx=5)
+    playerOne_Tree = ttk.Treeview(root)
+    playerOne_Tree.grid(row=1, column=0, padx=15)
+
+    playerOne_Tree['columns'] = ("Rank", "Player")
+
+    playerOne_Tree.heading('#0', text='', anchor=CENTER)
+    playerOne_Tree.heading("Rank", text="Rank", anchor=CENTER)
+    playerOne_Tree.heading("Player", text="Player", anchor=CENTER)
+
+    playerOne_Tree.column('#0', width=0, stretch=NO)
+    playerOne_Tree.column("Rank", width="60", anchor=CENTER)
+    playerOne_Tree.column("Player", width="120", anchor=CENTER)
+
+    for rank,player in enumerate(total_players_list):
+        playerOne_Tree.insert(parent='', index='end', values=(rank+1,player))
 
     vslabel = Label(root, text="VS", font=("Times New Roman bold",20))
-    vslabel.grid(row=1, column=1, padx=10)
+    vslabel.grid(row=1, column=1)
 
-    # Player Two ListBox
-    playerTwo_listbox = Listbox(root,width=35)
-    playerTwo_listbox.grid(row=1, column=2, padx=5)
-    player2_label = Label(root, text="PLAYER 2",font=("Times New Roman bold",10))
+    # Player Two tree
+    player2_label = Label(root, text="PLAYER 2",font=("Times New Roman bold",15))
     player2_label.grid(row=0, column=2)
+    playerTwo_Tree = ttk.Treeview(root)
+    playerTwo_Tree.grid(row=1, column=2, padx=15)
 
-    for players in total_players_list:
-        playerOne_listbox.insert("end", players)
+    playerTwo_Tree['columns'] = ("Rank", "Player")
 
-    for players in total_players_list:
-        playerTwo_listbox.insert("end", players)    
+    playerTwo_Tree.heading('#0', text='', anchor=CENTER)
+    playerTwo_Tree.heading("Rank", text="Rank", anchor=CENTER)
+    playerTwo_Tree.heading("Player", text="Player", anchor=CENTER)
+
+    playerTwo_Tree.column('#0', width=0, stretch=NO)
+    playerTwo_Tree.column("Rank", width="60", anchor=CENTER)
+    playerTwo_Tree.column("Player", width="120", anchor=CENTER)
+
+    for rank,player in enumerate(total_players_list):
+        playerTwo_Tree.insert(parent='', index='end', text="Parent", values=(rank+1,player))  
+
+    # Detached Players goes here 
+    playerOne_Tree_detached_items = []
+    playerTwo_Tree_detached_items = []
 
     def selectPlayer1():
+        # id_map = {'10': 'A','11': 'B','12': 'C','13': 'D','14': 'E','15': 'F'}
+        playerTwo_Tree_detached_items.sort(reverse=True)
+
+        # Reattach players
+        for i in playerTwo_Tree_detached_items:
+            playerTwo_Tree.reattach(i,'',0)
+        playerTwo_Tree_detached_items.clear()
+
+        # Detach Players more than 3 position higher
+        for id,i in enumerate(playerTwo_Tree.get_children(),1):
+            if id <= selected_item_p1[0]-4:
+                plyr2 = 'I00' + str(id)
+                playerTwo_Tree.detach(plyr2)
+                playerTwo_Tree_detached_items.append(plyr2)
+
+        # Insert into Player1 textbox 
+        player1_Entry.configure(state="normal")
+        player1_Entry.insert(0,selected_item_p1)   
+        player1_Entry.configure(state='disabled')
+
         return selected_item_p1
-    playerOne_listbox.bind('<<ListboxSelect>>', selectPlayerOne)
+    playerOne_Tree.bind('<<TreeviewSelect>>', selectPlayerOne)
     
     def selectPlayer2():
+        playerOne_Tree_detached_items.sort(reverse=True)
+
+        # Reattach players
+        for i in playerOne_Tree_detached_items:
+            playerOne_Tree.reattach(i,'',0)
+        playerOne_Tree_detached_items.clear()
+
+        # Detach Players more than 3 position higher
+        for id,i in enumerate(playerOne_Tree.get_children(),1):
+            if id <= selected_item_p2[0]-4:
+                plyr1 = 'I00' + str(id)
+                playerOne_Tree.detach('I00' + str(id))
+                playerOne_Tree_detached_items.append(plyr1)
+
+        # Insert into Player2 textbox 
+        player2_Entry.configure(state="normal")
+        player2_Entry.insert(0,selected_item_p2)   
+        player2_Entry.configure(state='disabled') 
+
         return selected_item_p2
-    playerTwo_listbox.bind('<<ListboxSelect>>', selectPlayerTwo)
+
+    playerTwo_Tree.bind('<<TreeviewSelect>>', selectPlayerTwo)
 
     # Datepicker
     Date_frame = Frame(root, bg="grey")
-    Date_frame.grid(row=5, column=1, sticky=NSEW) 
-    Date_label = Label(root, text="DATE OF MATCH",font=("Times New Roman bold",10))
-    Date_label.grid(row=4, column=1)
+    Date_frame.grid(row=5, column=2, sticky=NSEW) 
+    Date_label = Label(root, text="DATE OF MATCH",font=("Times New Roman bold",15))
+    Date_label.grid(row=4, column=2)
     cal = Calendar(Date_frame, selectmode="day", year=2021, month=5, day=22)
-    cal.grid(row=6, column=1, columnspan=2, sticky=W)
+    cal.grid(row=6, column=2, columnspan=2, sticky=W)
     
     def grab_date():
+        # Insert into Date textbox 
+        match_date_Entry.configure(state="normal")
+        match_date_Entry.insert(0,cal.get_date())
+        match_date_Entry.configure(state="disabled")
         return cal.get_date()
 
     # Date Button
     select_date_btn = Button(
         root, text="Select Date", command=grab_date)
-    select_date_btn.grid(row=7, column=1, pady=5)
+    select_date_btn.grid(row=7, column=2, pady=10)
 
     def createMatch():
         upcoming_match[len(upcoming_match) + 1] = {'Player1': selectPlayer1(), "VS": 'VS', 'Player2': selectPlayer2(), "Date": cal.get_date()}
@@ -245,13 +318,38 @@ def issueChallenge():
     # Player1 Button
     select_plyr_btn = Button(
         root, text="Select Player 1", command=selectPlayer1)
-    select_plyr_btn.grid(row=3, column=0)
+    select_plyr_btn.grid(row=3, column=0, pady=10)
+
+    # Match Details 
+    player1_frame = Frame(root,bg="grey",)
+    player1_frame.grid(row=4,column=0, rowspan=4, padx=20)
+    match_detail = Label(player1_frame, text="Match Details", font=("Times New Roman bold", 13))
+    match_detail.grid(row=4, column=0, pady=10, padx=10)
+
+    # Player1 TextBox 
+    player1_text_label = Label(player1_frame, text="Player 1: ", font=("Times New Roman bold", 10)) 
+    player1_text_label.grid(row=6, column=0)
+    player1_Entry = Entry(player1_frame, text="")
+    player1_Entry.grid(row=6,column=1, pady=10, padx=10)
 
     # Player2 Button
     select_plyr_btn = Button(
         root, text="Select Player 2", command=selectPlayer2)
-    select_plyr_btn.grid(row=3, column=2)
+    select_plyr_btn.grid(row=3, column=2,pady=10)
+
+    # Player2 TextBox 
+    player2_text_label = Label(player1_frame, text="Player 2: ", font=("Times New Roman bold", 10)) 
+    player2_text_label.grid(row=7, column=0)
+    player2_Entry = Entry(player1_frame, text="")
+    player2_Entry.grid(row=7,column=1)
+
+    # Match Date TextBox 
+    match_date_text_label = Label(player1_frame, text="Date: ",font=("Times New Roman bold", 10)) 
+    match_date_text_label.grid(row=8, column=0)
+    match_date_Entry = Entry(player1_frame, text="")
+    match_date_Entry.grid(row=8,column=1, pady=10)
 
     # Confirm Match Button
     cfm_match_btn = Button(root, text="Create Match", pady=10, padx=20, command=createMatch)
     cfm_match_btn.grid(row=8, column=1, pady=5)
+
