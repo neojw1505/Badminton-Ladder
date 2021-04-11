@@ -16,8 +16,9 @@ def loadPlayers():
     # load list data
     for line in f:
         total_players_list.append(line.strip())
-    return total_players_list    
 
+    return total_players_list
+    
 loadPlayers()
     
 def registerPlayerList():
@@ -30,6 +31,7 @@ def registerPlayerList():
     players_listbox.pack(pady=5)
     for players in total_players_list:
         players_listbox.insert("end", players)
+
     # add to total_players_list 
     def registerPlayer():
         root1 = Tk()
@@ -87,10 +89,10 @@ def viewPlayerStats():
     ws.title('All Player\'s Information')
     ws.geometry('600x300')
     players_tree = ttk.Treeview(ws)
+    players_tree.grid(row=0, column=0, padx=10,pady=10)
 
     # Define columns
-    players_tree['columns'] = (
-        "Name", "Position", "Match Played", "Won", "Loss", "WinRate(%)")
+    players_tree['columns'] = ("Name", "Position", "Match Played", "Won", "Loss", "WinRate(%)")
 
     # Column Headings
     players_tree.heading('#0', text='', anchor=CENTER)
@@ -123,7 +125,9 @@ def viewPlayerStats():
             winRate = p_info['match_won']/p_info['match_played']*100
         players_tree.insert(parent='', index='end', text="Parent", values=(
             p_info['name'], p_info['position'], p_info['match_played'], p_info['match_won'], p_info['match_loss'],winRate))
-        players_tree.pack()
+
+    btn_selected_player_matches = Button(ws, text="View Player Matches")  
+    btn_selected_player_matches.grid(row=1, column=0, pady=10)   
 
 def withdrawPlayerList():
     root = Tk()
@@ -295,14 +299,9 @@ def issueChallenge():
         match_date_Entry.configure(state="disabled")
         return cal.get_date()
 
-    # Date Button
-    select_date_btn = Button(
-        root, text="Select Date", command=grab_date)
-    select_date_btn.grid(row=7, column=2, pady=10)
-
     def createMatch():
-        upcoming_match[len(upcoming_match) + 1] = {'Player1': selectPlayer1(), "VS": 'VS', 'Player2': selectPlayer2(), "Date": cal.get_date()}
-        
+        upcoming_match[len(upcoming_match) + 1] = {'Player1': selected_item_p1, "VS": 'VS', 'Player2': selected_item_p2, "Date": cal.get_date()}
+            
         f = open("upcoming_match.txt", 'a')
         f.write(str(upcoming_match))
         f.write("\n")
@@ -314,6 +313,11 @@ def issueChallenge():
         if len(lines) > 1 and len(lines) != 1:
             with open('upcoming_match.txt', 'w') as fout:
                 fout.writelines(lines[1:])
+
+    # Date Button
+    select_date_btn = Button(
+        root, text="Select Date", command=grab_date)
+    select_date_btn.grid(row=7, column=2, pady=10)
 
     # Player1 Button
     select_plyr_btn = Button(
@@ -352,4 +356,6 @@ def issueChallenge():
     # Confirm Match Button
     cfm_match_btn = Button(root, text="Create Match", pady=10, padx=20, command=createMatch)
     cfm_match_btn.grid(row=8, column=1, pady=5)
+
+
 

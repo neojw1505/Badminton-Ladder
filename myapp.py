@@ -1,12 +1,13 @@
-
 from functions import *
+import datetime
 
 #====Initialize====#
 window = tk.Tk()
 window.geometry("1000x800")
+# window.config(bg="cyan")
 window.title("Mini Project: A Badminton Ladder")
 
-#=======Refresh Buttons=======#
+#=======Refresh Functions=======#
 def refreshUpcomingMatch():
     if os.path.getsize("upcoming_match.txt") > 0:
         file = open("upcoming_match.txt", "r")
@@ -49,7 +50,7 @@ for rank,player in enumerate(total_players_list):
 upcoming_match_tree_label = tk.Label(text="Upcoming Matches", font=("Times New Roman", 20))
 upcoming_match_tree_label.grid(column=0, row=1, pady=5)
 upcoming_match_tree = ttk.Treeview(window)
-upcoming_match_tree.grid(column=0, row=2, columnspan=5)
+upcoming_match_tree.grid(column=0, row=2,columnspan=5)
 
 upcoming_match_tree['columns'] = ("ID", "Player1", "VS", "Player2", "Date")
 
@@ -82,42 +83,135 @@ for id,match in upcoming_match.items():
     upcoming_match_tree.insert(parent='', index='end', text="Parent", values=(id,match['Player1'], match['VS'], match['Player2'], match['Date']))
 upcoming_match_tree.grid(column=0, row=2, columnspan=5)
 
+#=======Add Score Function=======#
+def selectMatchInUpcomingMatch(event):
+    global match
+    match = upcoming_match_tree.focus()
+    match = upcoming_match_tree.item(match)['values']
+upcoming_match_tree.bind("<<TreeviewSelect>>",selectMatchInUpcomingMatch)
+
+def addScore():
+    root = Tk()  
+    root.title("Save Match Result")
+    root.geometry("600x600")
+    
+    # Header
+    header_label = tk.Label(root,text="MATCH RESULTS", font=("Times New Roman", 30))
+    header_label.grid(column=1, row=0, pady=5)
+
+    # Date Label
+    frame = Frame(root, bg="grey")
+    frame.grid(column=1, row=1, pady=5)
+    date = datetime.datetime.strptime(match[4], '%w/%d/%y')
+    date = date.strftime('%b %d, %Y')
+    date_label = tk.Label(frame,text=date, font=("Times New Roman", 30))
+    date_label.grid(column=1, row=1, pady=5)
+
+    # Players Label
+    player_1_label = tk.Label(root,text=match[1], font=("Times New Roman", 15))
+    player_1_label.grid(column=0, row=3, pady=5)
+
+    player_2_label = tk.Label(root,text=match[3], font=("Times New Roman", 15))
+    player_2_label.grid(column=2, row=3, pady=5)
+
+    player_1_label = tk.Label(root,text=match[1], font=("Times New Roman", 15))
+    player_1_label.grid(column=0, row=5, pady=5)
+
+    player_2_label = tk.Label(root,text=match[3], font=("Times New Roman", 15))
+    player_2_label.grid(column=2, row=5, pady=5)
+
+    player_1_label = tk.Label(root,text=match[1], font=("Times New Roman", 15))
+    player_1_label.grid(column=0, row=7, pady=5)
+
+    player_2_label = tk.Label(root,text=match[3], font=("Times New Roman", 15))
+    player_2_label.grid(column=2, row=7, pady=5)
+
+    # Match Labels
+    match1_label = tk.Label(root,text="Match 1", font=("Times New Roman", 20))
+    match1_label.grid(column=1, row=2, pady=5)
+    
+    match2_label = tk.Label(root,text="Match 2", font=("Times New Roman", 20))
+    match2_label.grid(column=1, row=4, pady=5)
+
+    match3_label = tk.Label(root,text="Match 3", font=("Times New Roman", 20))
+    match3_label.grid(column=1, row=6, pady=5)
+
+    # Match Entry
+    global match1_Entry
+    match1_Entry = Entry(root, text="")
+    match1_Entry.grid(row=3,column=1, pady=10, padx=10)
+
+    global match2_Entry
+    match2_Entry = Entry(root, text="")
+    match2_Entry.grid(row=5,column=1, pady=10, padx=10)
+
+    global match3_Entry
+    match3_Entry = Entry(root, text="")
+    match3_Entry.grid(row=7,column=1, pady=10, padx=10)
+
+    # Save Result Button
+    global save_result_label
+    btn_save_result = tk.Button(root,text="Save Results", pady=10, padx=20, command=saveMatchResults)
+    btn_save_result.grid(row=8, column=1, pady=10) 
+    save_result_label = tk.Label(root,font=("Times New Roman", 20))
+    save_result_label.grid(column=1, row=9, pady=10)
+
+def saveMatchResults():
+    save_result_label.config(text="Results Saved!")
+    date = datetime.datetime.strptime(match[4], '%w/%d/%y')
+    date = date.strftime('%d-%m-%Y')
+    print(date)
+
+    # Add to data.txt Match Record
+    f = open("data.txt", 'a')
+    f.write(str(match[1] + "/" + str(match[3]) + "/" + str(date) + "/" + str(match1_Entry.get()) + " " + str(match2_Entry.get()) + " " + str(match3_Entry.get())))
+    f.write("\n")
+    f.close()
+
+    print(match1_Entry.get())
+    print(match2_Entry.get())
+    print(match3_Entry.get())
+
+
 #=======Past Matches=======#
 past_match_tree_label = tk.Label(text="Past Matches", font=("Times New Roman", 20))
 past_match_tree_label.grid(column=0, row=5, pady=5)
 past_match_tree = ttk.Treeview(window)
-past_match_tree.grid(column=0, row=6, columnspan=5)
+past_match_tree.grid(column=0, row=6, columnspan=4)
 
-past_match_tree['columns'] = ("ID", "Player1", "VS", "Player2", "Date")
+past_match_tree['columns'] = ("ID", "Player1", "Player2", "Date", "Score")
 
 past_match_tree.heading('#0', text='', anchor=CENTER)
 past_match_tree.heading("ID", text="ID", anchor=CENTER)
 past_match_tree.heading("Player1", text="Player1", anchor=CENTER)
-past_match_tree.heading("VS", text="VS", anchor=CENTER)
 past_match_tree.heading("Player2", text="Player2", anchor=CENTER)
 past_match_tree.heading("Date", text="Date", anchor=CENTER)
+past_match_tree.heading("Score", text="Score", anchor=CENTER)
 
 past_match_tree.column('#0', width=0, stretch=NO)
 past_match_tree.column("ID", width="60", anchor=CENTER)
 past_match_tree.column("Player1", width="120", anchor=CENTER)
-past_match_tree.column("VS", width="120", anchor=CENTER)
 past_match_tree.column("Player2", width="120", anchor=CENTER)
 past_match_tree.column("Date", width="80", anchor=CENTER)
+past_match_tree.column("Score", width="80", anchor=CENTER)
 
 past_match_scroll = Scrollbar(window)
-past_match_scroll.grid(column=5, row=6)
+past_match_scroll.grid(column=4, row=6)
 past_match_tree.configure(yscrollcommand=past_match_scroll.set)
 past_match_scroll.configure(command=past_match_tree.yview)
 
 #=======Buttons=======#
-btn_refresh_upcoming_match = tk.Button(window,text="Refresh Match", bg="white", command=refreshUpcomingMatch)
-btn_refresh_upcoming_match.grid(row=3, column=0, pady=5) 
+btn_refresh_upcoming_match = tk.Button(window,text="Refresh Match", command=refreshUpcomingMatch)
+btn_refresh_upcoming_match.grid(row=3, column=0) 
 
-btn_refresh_ladder = tk.Button(window,text="Refresh Ladder", bg="white", command=refreshLadder)
+btn_refresh_ladder = tk.Button(window,text="Refresh Ladder", command=refreshLadder)
 btn_refresh_ladder.grid(row=3, column=6, pady=5) 
 
-btn_frame = Frame(window, width=1000, height=60, bg="grey")
-btn_frame.grid(row=4, column=0,sticky=NSEW)
+btn_add_score_upcoming_match = tk.Button(window, text="Add Score", command=addScore)
+btn_add_score_upcoming_match.grid(row=3, column=1) 
+
+btn_frame = Frame(window)
+btn_frame.grid(row=4, column=0, sticky=NSEW)
 
 btn_register = tk.Button(btn_frame,text="Register", bg="green", command=registerPlayerList)
 btn_register.grid(row=4, column=1, padx=5) 
