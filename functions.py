@@ -9,18 +9,43 @@ from tkcalendar import *
 total_players_list = []
 total_players_dict = {}
 upcoming_match = {}
+global past_match
+past_match = {}
 
 def loadPlayers():
-    #  open ladder.txt in read mode
+    # Load ladder.txt
     f = open('ladder.txt', 'r')
-    # load list data
     for line in f:
         total_players_list.append(line.strip())
 
-    return total_players_list
-    
+    # Load upcoming_match.txt
+    if os.path.getsize('upcoming_match.txt') > 0:
+        um = open('upcoming_match.txt', 'r')
+        umcontents = um.read()
+        global upcoming_match
+        upcoming_match = ast.literal_eval(umcontents)
+        um.close()
+
+    # Load player_dict.txt
+    if os.path.getsize('player_dict.txt') > 0:
+        pd = open('player_dict.txt', 'r')
+        pdcontents = pd.read()
+        global total_players_dict
+        total_players_dict = ast.literal_eval(pdcontents)
+        pd.close()
+
+    # Load past_match.txt
+    if os.path.getsize('past_match.txt') > 0:
+        pm = open('past_match.txt', 'r')
+        pmcontents = pm.read()
+        global past_match
+        past_match = ast.literal_eval(pmcontents)
+        pm.close()
+
+    return total_players_list, total_players_dict, upcoming_match, past_match
+
 loadPlayers()
-    
+
 def registerPlayerList():
     root = Tk()
     root.title("Register a player")
@@ -314,6 +339,9 @@ def issueChallenge():
             with open('upcoming_match.txt', 'w') as fout:
                 fout.writelines(lines[1:])
 
+        cfm_match_label.config(text="Match Created!")
+
+
     # Date Button
     select_date_btn = Button(
         root, text="Select Date", command=grab_date)
@@ -357,5 +385,8 @@ def issueChallenge():
     cfm_match_btn = Button(root, text="Create Match", pady=10, padx=20, command=createMatch)
     cfm_match_btn.grid(row=8, column=1, pady=5)
 
+    # Confirm Match Button
+    cfm_match_label = Label(root, font=("Times New Roman bold", 13))
+    cfm_match_label.grid(row=9, column=1, pady=5)
 
 
