@@ -1,5 +1,4 @@
 from functions import *
-import datetime
 
 #====Initialize====#
 window = tk.Tk()
@@ -93,6 +92,19 @@ def selectMatchInUpcomingMatch(event):
     global match
     match = upcoming_match_tree.focus()
     match = upcoming_match_tree.item(match)['values']
+    
+    global match_id
+    match_id = match[0]
+
+    global Player_1
+    Player_1 = match[1]
+
+    global Player_2
+    Player_2 = match[3]
+
+    global match_date
+    match_date = match[4]
+
 upcoming_match_tree.bind("<<TreeviewSelect>>",selectMatchInUpcomingMatch)
 
 def addScore():
@@ -106,28 +118,28 @@ def addScore():
     # Date Label
     frame = Frame(root, bg="grey")
     frame.grid(column=1, row=1, pady=5)
-    date = datetime.datetime.strptime(match[4], '%j/%d/%y')
+    date = datetime.datetime.strptime(match_date, '%j/%d/%y')
     date = date.strftime('%b %d, %Y')
     date_label = tk.Label(frame,text=date, font=("Times New Roman", 30))
     date_label.grid(column=1, row=1, pady=5)
 
     # Players Label
-    player_1_label = tk.Label(root,text=match[1], font=("Times New Roman", 15))
+    player_1_label = tk.Label(root,text=Player_1, font=("Times New Roman", 15))
     player_1_label.grid(column=0, row=3, pady=5)
 
-    player_2_label = tk.Label(root,text=match[3], font=("Times New Roman", 15))
+    player_2_label = tk.Label(root,text=Player_2, font=("Times New Roman", 15))
     player_2_label.grid(column=2, row=3, pady=5)
 
-    player_1_label = tk.Label(root,text=match[1], font=("Times New Roman", 15))
+    player_1_label = tk.Label(root,text=Player_1, font=("Times New Roman", 15))
     player_1_label.grid(column=0, row=5, pady=5)
 
-    player_2_label = tk.Label(root,text=match[3], font=("Times New Roman", 15))
+    player_2_label = tk.Label(root,text=Player_2, font=("Times New Roman", 15))
     player_2_label.grid(column=2, row=5, pady=5)
 
-    player_1_label = tk.Label(root,text=match[1], font=("Times New Roman", 15))
+    player_1_label = tk.Label(root,text=Player_1, font=("Times New Roman", 15))
     player_1_label.grid(column=0, row=7, pady=5)
 
-    player_2_label = tk.Label(root,text=match[3], font=("Times New Roman", 15))
+    player_2_label = tk.Label(root,text=Player_2, font=("Times New Roman", 15))
     player_2_label.grid(column=2, row=7, pady=5)
 
     # Match Labels
@@ -148,7 +160,7 @@ def addScore():
     global match2_Entry
     match2_Entry = Entry(root, text="")
     match2_Entry.grid(row=5,column=1, pady=10, padx=10)
-
+    
     global match3_Entry
     match3_Entry = Entry(root, text="")
     match3_Entry.grid(row=7,column=1, pady=10, padx=10)
@@ -162,22 +174,66 @@ def addScore():
 
 def saveMatchResults():
     save_result_label.config(text="Results Saved!", font =("Times New Roman bold", 13))
-    date = datetime.datetime.strptime(match[4], '%j/%d/%y')
+    date = datetime.datetime.strptime(match_date, '%j/%d/%y')
     date = date.strftime('%d-%m-%Y')
 
     # Add to data.txt Match Record
     scores = str(match1_Entry.get()) + " " + str(match2_Entry.get()) + " " + str(match3_Entry.get())
     scores = scores.rstrip()
+
+    #====Check Which Player Won====#
+    matches_played = 0
+    player1_match_won = 0
+    player2_match_won = 0
+    player1_won = False
+    player2_won = False
+
+
+    # Match 1 Results 
+    match_1_result = match1_Entry.get().split('-')
+    player1_m1_result = match_1_result[0]
+    player2_m1_result = match_1_result[1]
+
+    # Match 2 Results 
+    match_2_result = match2_Entry.get().split('-')
+    player1_m2_result = match_2_result[0]
+    player2_m2_result = match_2_result[1]
+
+    # Match 3 Results 
+    match_3_result = match3_Entry.get().split('-')
+    player1_m3_result = match_3_result[0]
+    player2_m3_result = match_3_result[1]
+
+    if player1_m1_result > player2_m1_result:
+        player1_match_won += 1
+    else:
+        player2_match_won += 1
+
+    if player1_m2_result > player2_m2_result:
+        player1_match_won += 1
+    else:
+        player2_match_won += 1   
+
+    if player1_m3_result > player2_m3_result:
+        player1_match_won += 1
+    else:
+        player2_match_won += 1     
+
+    if player1_match_won >= 2:
+        player1_won = True
+    if player2_match_won >= 2:
+        player2_won = True
+
     f = open("data.txt", 'a')
-    f.write(str(match[1] + "/" + str(match[3]) + "/" + str(date) + "/" + scores))
+    f.write(str(Player_1 + "/" + str(Player_2) + "/" + str(date) + "/" + scores))
     f.write("\n")
     f.close()
 
     # Add to Past Matches
-    past_match_tree.insert(parent='', index='end', text="Parent", values=(match[0], match[1], match[3], date, scores))
+    past_match_tree.insert(parent='', index='end', text="Parent", values=(match[0], Player_1, Player_2, date, scores))
 
     # Add to past_match.txt 
-    past_match[len(past_match) + 1] = {'ID': match[0], "Player1": match[1], 'Player2': match[3], "Date": date, "Score": scores}
+    past_match[len(past_match) + 1] = {'ID': match[0], "Player1": Player_1, 'Player2': Player_2, "Date": date, "Score": scores}
             
     f = open("past_match.txt", 'a')
     f.write(str(past_match))
@@ -191,8 +247,11 @@ def saveMatchResults():
         with open('past_match.txt', 'w') as fout:
             fout.writelines(lines[1:])
     
-    # Remove from Upcoming Matches
-    # upcoming_match_tree.delete(match)
+    # Remove from Upcoming Matches View
+    for record in upcoming_match_tree.get_children():
+        if upcoming_match_tree.item(record)['values'][0] == match[0]:
+            upcoming_match_tree.delete(record)
+            break
 
     # Remove from upcoming_match.txt
     for k,v in upcoming_match.copy().items():
@@ -203,6 +262,36 @@ def saveMatchResults():
     f.write(str(upcoming_match))
     f.write("\n")
     f.close()
+
+    # Update Player Information
+    for rank, info in total_players_dict.items():
+        if info['name'] == Player_1 or info['name'] == Player_2:
+            info['match_played'] += 1
+            if player1_won == True:
+                if info['name'] == Player_1:
+                    info['match_won'] += 1 
+                if info['name'] == Player_2:
+                    info['match_loss'] += 1 
+            elif player2_won == True:        
+                if info['name'] == Player_1:
+                    info['match_loss'] += 1 
+                if info['name'] == Player_2:
+                    info['match_won'] += 1 
+    
+    f = open("player_dict.txt", 'a')
+    f.write(str(total_players_dict))
+    f.write("\n")
+    f.close()
+    
+    # Delete first line if there is more than 1 line
+    with open('player_dict.txt', 'r') as fin:
+        lines = fin.read().splitlines(True)
+        if len(lines) > 1 and len(lines) != 1:
+            with open('player_dict.txt', 'w') as fout:
+                fout.writelines(lines[1:])
+
+    # Update Ladder Ranking
+        
     
 #=======Past Matches=======#
 past_match_tree_label = tk.Label(text="Past Matches", font=("Times New Roman", 20))
@@ -224,7 +313,7 @@ past_match_tree.column("ID", width="60", anchor=CENTER)
 past_match_tree.column("Player1", width="120", anchor=CENTER)
 past_match_tree.column("Player2", width="120", anchor=CENTER)
 past_match_tree.column("Date", width="80", anchor=CENTER)
-past_match_tree.column("Score", width="80", anchor=CENTER)
+past_match_tree.column("Score", width="120", anchor=CENTER)
 
 past_match_scroll = Scrollbar(window)
 past_match_scroll.grid(column=4, row=6)

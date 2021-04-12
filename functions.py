@@ -4,6 +4,9 @@ import tkinter as tk
 from tkinter import *
 from tkinter import ttk
 from tkcalendar import *
+import datetime 
+from datetime import date
+
 
 # Total Players Data Structures
 total_players_list = []
@@ -87,17 +90,23 @@ def registerPlayerList():
             f.write("\n")
             f.close()
 
-            # Delete first line if there is more than 1 line
             with open('player_dict.txt', 'r') as fin:
                 lines = fin.read().splitlines(True)
             if len(lines) > 1 and len(lines) != 1:
                 with open('player_dict.txt', 'w') as fout:
                     fout.writelines(lines[1:])
 
+            # Add to data.txt
+            f = open("data.txt", 'a')
+            f.write("+" + player_to_register + "/" + date.today().strftime("%d-%m-%Y"))
+            f.write("\n")
+            f.close()
+
             # Refresh Player ListBox
             players_listbox.delete(0, END)
             for players in total_players_list:
                 players_listbox.insert("end", players)
+
         # Entry Buttons
         Register_plyr_name_btn = Button(
             root1, text="Enter Player to Register", command=registerPlayerName)
@@ -113,34 +122,35 @@ def viewPlayerStats():
     ws = Tk()
     ws.title('All Player\'s Information')
     ws.geometry('600x300')
-    players_tree = ttk.Treeview(ws)
-    players_tree.grid(row=0, column=0, padx=10,pady=10)
+    players_match_info_tree = ttk.Treeview(ws)
+    players_match_info_tree.grid(row=0, column=0, padx=10,pady=10)
 
     # Define columns
-    players_tree['columns'] = ("Name", "Position", "Match Played", "Won", "Loss", "WinRate(%)")
+    players_match_info_tree['columns'] = ("Name", "Position", "Match Played", "Won", "Loss", "WinRate(%)")
 
     # Column Headings
-    players_tree.heading('#0', text='', anchor=CENTER)
-    players_tree.heading("Name", text="Name", anchor=W)
-    players_tree.heading("Position", text="Position", anchor=W)
-    players_tree.heading("Match Played", text="Match Played", anchor=W)
-    players_tree.heading("Won", text="Won", anchor=CENTER)
-    players_tree.heading("Loss", text="Loss", anchor=CENTER)
-    players_tree.heading("WinRate(%)", text="WinRate(%)", anchor=CENTER)
+    players_match_info_tree.heading('#0', text='', anchor=CENTER)
+    players_match_info_tree.heading("Name", text="Name", anchor=W)
+    players_match_info_tree.heading("Position", text="Position", anchor=W)
+    players_match_info_tree.heading("Match Played", text="Match Played", anchor=W)
+    players_match_info_tree.heading("Won", text="Won", anchor=CENTER)
+    players_match_info_tree.heading("Loss", text="Loss", anchor=CENTER)
+    players_match_info_tree.heading("WinRate(%)", text="WinRate(%)", anchor=CENTER)
 
     # Format columns
-    players_tree.column('#0', width=0, stretch=NO)
-    players_tree.column("Name", anchor=W, width=120)
-    players_tree.column("Position", anchor=CENTER, width=80)
-    players_tree.column("Match Played", anchor=CENTER, width=80)
-    players_tree.column("Won", anchor=CENTER, width=40)
-    players_tree.column("Loss", anchor=CENTER, width=40)
-    players_tree.column("WinRate(%)", anchor=CENTER, width=80)
+    players_match_info_tree.column('#0', width=0, stretch=NO)
+    players_match_info_tree.column("Name", anchor=W, width=120)
+    players_match_info_tree.column("Position", anchor=CENTER, width=80)
+    players_match_info_tree.column("Match Played", anchor=CENTER, width=80)
+    players_match_info_tree.column("Won", anchor=CENTER, width=40)
+    players_match_info_tree.column("Loss", anchor=CENTER, width=40)
+    players_match_info_tree.column("WinRate(%)", anchor=CENTER, width=80)
 
     # Add Data
     if os.path.getsize("player_dict.txt") > 0:
         file = open("player_dict.txt", "r")
         contents = file.read()
+        global total_players_dict
         total_players_dict = ast.literal_eval(contents)
         file.close()
     for p_info in total_players_dict.values():
@@ -148,7 +158,7 @@ def viewPlayerStats():
             winRate = 0
         else:
             winRate = p_info['match_won']/p_info['match_played']*100
-        players_tree.insert(parent='', index='end', text="Parent", values=(
+        players_match_info_tree.insert(parent='', index='end', text="Parent", values=(
             p_info['name'], p_info['position'], p_info['match_played'], p_info['match_won'], p_info['match_loss'],winRate))
 
     btn_selected_player_matches = Button(ws, text="View Player Matches")  
@@ -189,6 +199,18 @@ def withdrawPlayerList():
                     player_dict.write("\n")
                     player_dict.close()
                     break
+
+        with open('player_dict.txt', 'r') as fin:
+            lines = fin.read().splitlines(True)
+        if len(lines) > 1 and len(lines) != 1:
+            with open('player_dict.txt', 'w') as fout:
+                fout.writelines(lines[1:])
+
+        # Withdraw Player from Data.txt
+        f = open("data.txt", 'a')
+        f.write("-" + player_to_remove + "/" + date.today().strftime("%d-%m-%Y"))
+        f.write("\n")
+        f.close()
 
         # Clear List Box
         players_listbox.delete(0, END)
@@ -279,10 +301,11 @@ def issueChallenge():
 
         # Insert into Player1 textbox 
         player1_Entry.configure(state="normal")
-        player1_Entry.insert(0,selected_item_p1)   
+        player1_Entry.insert(0,selected_item_p1[1])   
         player1_Entry.configure(state='disabled')
+        
+        return str(selected_item_p1[1]) + " " + str(selected_item_p1[0])
 
-        return selected_item_p1
     playerOne_Tree.bind('<<TreeviewSelect>>', selectPlayerOne)
     
     def selectPlayer2():
@@ -302,10 +325,10 @@ def issueChallenge():
 
         # Insert into Player2 textbox 
         player2_Entry.configure(state="normal")
-        player2_Entry.insert(0,selected_item_p2)   
+        player2_Entry.insert(0,selected_item_p2[1])   
         player2_Entry.configure(state='disabled') 
 
-        return selected_item_p2
+        return str(selected_item_p2[1]) + " " + str(selected_item_p2[0])
 
     playerTwo_Tree.bind('<<TreeviewSelect>>', selectPlayerTwo)
 
@@ -325,7 +348,7 @@ def issueChallenge():
         return cal.get_date()
 
     def createMatch():
-        upcoming_match[len(upcoming_match) + 1] = {'Player1': selected_item_p1, "VS": 'VS', 'Player2': selected_item_p2, "Date": cal.get_date()}
+        upcoming_match[len(upcoming_match) + 1] = {'Player1': selected_item_p1[1] +" "+ str(selected_item_p1[0]), "VS": 'VS', 'Player2': selected_item_p2[1] + " " + str(selected_item_p2[0]), "Date": cal.get_date()}
             
         f = open("upcoming_match.txt", 'a')
         f.write(str(upcoming_match))
