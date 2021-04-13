@@ -5,7 +5,7 @@ The Program
 #=====The program manages the ladder and displays useful information=====#
   i. Provide means for a player to take one of these actions:
     a. Issue a challenge (stating opponent and play-by date)
-    b. Record the result of a challenge
+    b. Record the result of a challenge 
     c. Join the ladder
     d. Withdraw from the ladder
     e. Make a query
