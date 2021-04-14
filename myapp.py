@@ -283,7 +283,7 @@ def saveMatchResults():
                 # Player 1 will take over Player 2 pos 
                 Player_1_pos = Player_2_pos
                 Player_2_pos -= 1
-
+                
             if player1_won == False and player2_won == True:
                 if info['name'] == Player_1[:-2]:
                     info['match_loss'] += 1 

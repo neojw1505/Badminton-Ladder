@@ -1,1 +1,1 @@
-{1: {'Player1': 'Nate 9', 'VS': 'VS', 'Player2': 'Mary 6', 'Date': '5/27/21'}}
+{}
