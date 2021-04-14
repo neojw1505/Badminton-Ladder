@@ -189,14 +189,16 @@ def saveMatchResults():
     player2_won = False
 
     # Match 1 Results 
-    match_1_result = match1_Entry.get().split('-')
-    player1_m1_result = match_1_result[0]
-    player2_m1_result = match_1_result[1]
+    if len(match1_Entry.get()) != 0:
+        match_1_result = match1_Entry.get().split('-')
+        player1_m1_result = match_1_result[0]
+        player2_m1_result = match_1_result[1]
 
     # Match 2 Results 
-    match_2_result = match2_Entry.get().split('-')
-    player1_m2_result = match_2_result[0]
-    player2_m2_result = match_2_result[1]
+    if len(match2_Entry.get()) != 0:
+        match_2_result = match2_Entry.get().split('-')
+        player1_m2_result = match_2_result[0]
+        player2_m2_result = match_2_result[1]
 
     # Match 3 Results 
     # if match3_entry is not empty, then assign player results
@@ -205,15 +207,17 @@ def saveMatchResults():
         player1_m3_result = match_3_result[0]
         player2_m3_result = match_3_result[1]
 
-    if player1_m1_result > player2_m1_result:
-        player1_match_won += 1
-    else:
-        player2_match_won += 1
+    if len(match1_Entry.get()) != 0:
+        if player1_m1_result > player2_m1_result:
+            player1_match_won += 1
+        else:
+            player2_match_won += 1
 
-    if player1_m2_result > player2_m2_result:
-        player1_match_won += 1
-    else:
-        player2_match_won += 1   
+    if len(match2_Entry.get()) != 0:
+        if player1_m2_result > player2_m2_result:
+            player1_match_won += 1
+        else:
+            player2_match_won += 1   
 
     if len(match3_Entry.get()) != 0:
         if player1_m3_result > player2_m3_result:

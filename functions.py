@@ -74,7 +74,6 @@ def registerPlayerList():
             eLabel = Label(root1, text="Player: " + e.get() + " is registered!")
             eLabel.pack()
             player_to_register = e.get()
-            e.delete(0,END)
 
             # append new player to ladder.txt (list)
             f = open("ladder.txt", "a")
@@ -280,7 +279,6 @@ def viewPlayerStats():
             # insert filtered data
             for p_info in most_wins_data.values():
                 players_match_info_tree.insert(parent='', index='0', values=(p_info["name"],p_info["position"],p_info["match_played"],p_info["match_won"],p_info["match_loss"],"{:.2f}".format(winRate)))
-
 
 
     btn_selected_player_matches = Button(ws, text="View Player Matches", command=viewPlayerMatches)
