@@ -174,6 +174,7 @@ def addScore():
 
 def saveMatchResults():
     save_result_label.config(text="Results Saved!", font =("Times New Roman bold", 13))
+    global match_date
     date = datetime.datetime.strptime(match_date, '%j/%d/%y')
     date = date.strftime('%d-%m-%Y')
 
@@ -182,12 +183,10 @@ def saveMatchResults():
     scores = scores.rstrip()
 
     #====Check Which Player Won====#
-    matches_played = 0
     player1_match_won = 0
     player2_match_won = 0
     player1_won = False
     player2_won = False
-
 
     # Match 1 Results 
     match_1_result = match1_Entry.get().split('-')
@@ -200,9 +199,11 @@ def saveMatchResults():
     player2_m2_result = match_2_result[1]
 
     # Match 3 Results 
-    match_3_result = match3_Entry.get().split('-')
-    player1_m3_result = match_3_result[0]
-    player2_m3_result = match_3_result[1]
+    # if match3_entry is not empty, then assign player results
+    if len(match3_Entry.get()) != 0:
+        match_3_result = match3_Entry.get().split('-')
+        player1_m3_result = match_3_result[0]
+        player2_m3_result = match_3_result[1]
 
     if player1_m1_result > player2_m1_result:
         player1_match_won += 1
@@ -214,10 +215,11 @@ def saveMatchResults():
     else:
         player2_match_won += 1   
 
-    if player1_m3_result > player2_m3_result:
-        player1_match_won += 1
-    else:
-        player2_match_won += 1     
+    if len(match3_Entry.get()) != 0:
+        if player1_m3_result > player2_m3_result:
+            player1_match_won += 1
+        else:
+            player2_match_won += 1     
 
     if player1_match_won >= 2:
         player1_won = True
@@ -230,10 +232,10 @@ def saveMatchResults():
     f.close()
 
     # Add to Past Matches
-    past_match_tree.insert(parent='', index='end', text="Parent", values=(match[0], Player_1, Player_2, date, scores))
+    past_match_tree.insert(parent='', index='end', text="Parent", values=(match_id, Player_1, Player_2, date, scores))
 
     # Add to past_match.txt 
-    past_match[len(past_match) + 1] = {'ID': match[0], "Player1": Player_1, 'Player2': Player_2, "Date": date, "Score": scores}
+    past_match[len(past_match) + 1] = {'ID': match_id, "Player1": Player_1, 'Player2': Player_2, "Date": date, "Score": scores}
             
     f = open("past_match.txt", 'a')
     f.write(str(past_match))
@@ -263,20 +265,34 @@ def saveMatchResults():
     f.write("\n")
     f.close()
 
-    # Update Player Information
+    # Update Player Information in total_players_dict and player_dict.txt
     for rank, info in total_players_dict.items():
-        if info['name'] == Player_1 or info['name'] == Player_2:
+        if info['name'] == Player_1[:-2] or info['name'] == Player_2[:-2]:
             info['match_played'] += 1
-            if player1_won == True:
-                if info['name'] == Player_1:
-                    info['match_won'] += 1 
-                if info['name'] == Player_2:
+            if player1_won == True and player2_won == False:
+                if info['name'] == Player_1[:-2]:
+                    info['match_won'] += 1
+                    # Player 1 position
+                    Player_1_pos = info['position']
+                    print("Player1_pos:" + str(Player_1_pos)) 
+                if info['name'] == Player_2[:-2]:
+                    info['match_loss'] += 1    
+                    # Player 2 position 
+                    Player_2_pos = info['position']
+                    print("Player2_pos:" + str(Player_2_pos))
+                # Player 1 will take over Player 2 pos 
+                Player_1_pos = Player_2_pos
+                Player_2_pos -= 1
+
+            if player1_won == False and player2_won == True:
+                if info['name'] == Player_1[:-2]:
                     info['match_loss'] += 1 
-            elif player2_won == True:        
-                if info['name'] == Player_1:
-                    info['match_loss'] += 1 
-                if info['name'] == Player_2:
+                    # Player 1 position 
+                    print("Player1_pos:" + str(info['position'])) 
+                if info['name'] == Player_2[:-2]:
                     info['match_won'] += 1 
+                    # Player 2 position 
+                    print("Player2_pos:" + str(info['position'])) 
     
     f = open("player_dict.txt", 'a')
     f.write(str(total_players_dict))
