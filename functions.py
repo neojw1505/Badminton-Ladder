@@ -72,9 +72,9 @@ def registerPlayerList():
         def registerPlayerName():
             # Labels
             eLabel = Label(root1, text="Player: " + e.get() + " is registered!")
-            e.delete(0,END)
             eLabel.pack()
             player_to_register = e.get()
+            e.delete(0,END)
 
             # append new player to ladder.txt (list)
             f = open("ladder.txt", "a")
