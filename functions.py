@@ -3,17 +3,18 @@ import ast
 import tkinter as tk
 from tkinter import *
 from tkinter import ttk
+from tkinter import messagebox
 from tkcalendar import *
 import datetime
 from datetime import date
 from collections import OrderedDict
 
+#========================================= Load All Required Data ====================================#
 # Total Players Data Structures
 total_players_list = []
 total_players_dict = {}
 upcoming_match = {}
 past_match = {}
-
 
 def loadPlayers():
     # Load ladder.txt
@@ -49,6 +50,7 @@ def loadPlayers():
 loadPlayers()
 
 
+#================================= Register A Player to Ladder ===============================#
 def registerPlayerList():
     root = Tk()
     root.title("Register a player")
@@ -125,15 +127,17 @@ def registerPlayerList():
     Register_plyr_btn = Button(root, text="Click to Register", command=registerPlayer)
     Register_plyr_btn.pack(pady=10)
 
+#================================= View All/Selected Players Match Information ============================#
+def viewPlayerMatchInfo():
 
-def viewPlayerStats():
-    # Display Player Treeview
+    #=========== Display Treeview ============#
+    # Initialize Treeview
     ws = Tk()
     ws.title("All Player's Information")
-    ws.geometry("600x300")
+    ws.geometry("600x350")
     global players_match_info_tree
     players_match_info_tree = ttk.Treeview(ws)
-    players_match_info_tree.grid(row=0, column=0, padx=10, pady=10)
+    players_match_info_tree.grid(row=1, column=0, padx=10, pady=10)
 
     # Define columns
     players_match_info_tree["columns"] = (
@@ -144,7 +148,6 @@ def viewPlayerStats():
         "Loss",
         "WinRate(%)",
     )
-
     # Column Headings
     players_match_info_tree.heading("#0", text="", anchor=CENTER)
     players_match_info_tree.heading("Name", text="Name", anchor=W)
@@ -162,7 +165,7 @@ def viewPlayerStats():
     players_match_info_tree.column("Won", anchor=CENTER, width=40)
     players_match_info_tree.column("Loss", anchor=CENTER, width=40)
     players_match_info_tree.column("WinRate(%)", anchor=CENTER, width=80)
-
+    
     # Selected Player
     def selectPlayer(event):
         curPlayer = players_match_info_tree.focus()
@@ -185,115 +188,210 @@ def viewPlayerStats():
             winRate = p_info["match_won"] / p_info["match_played"] * 100
         players_match_info_tree.insert(parent="",index="end",text="Parent",values=(p_info["name"],p_info["position"],p_info["match_played"],p_info["match_won"],p_info["match_loss"],"{:.2f}".format(winRate)))
 
-    def viewPlayerMatches():
-        root= Tk()
-        root.title(selected_player_name + "'s Past Matches")
-        root.geometry("600x300")
+    #========= Search Player By Name ========#
+    def search():
+        players_match_info_tree.focus_set()
+        children = players_match_info_tree.get_children()
+        if children:
+            players_match_info_tree.focus(children[0])
+            players_match_info_tree.selection_set(children[0])
+            players_match_info_tree.focus()
 
-        # Create Selected Player Matches Tree
-        selected_player_matches_tree = ttk.Treeview(root)
-        selected_player_matches_tree.grid(row=0, column=0, padx=10, pady=10)
+        query = search_entry.get()
+        selections = []
+        if query == "":
+            ws.lower()
+            messagebox.showwarning("Input a Player Name","Search Entry Cannot Be Empty!")
+            ws.focus_set()
+            ws.tkraise()
+        for child in children:
+            if query in players_match_info_tree.item(child)['values']:
+                selections.append(child)
 
-        selected_player_matches_tree['columns'] = ("MatchID", "Player1", "Player2", "Date", "Score")
-        
-        selected_player_matches_tree.heading('#0', text='', anchor=CENTER)
-        selected_player_matches_tree.heading("MatchID", text="MatchID", anchor=CENTER)
-        selected_player_matches_tree.heading("Player1", text="Player1", anchor=CENTER)
-        selected_player_matches_tree.heading("Player2", text="Player2", anchor=CENTER)
-        selected_player_matches_tree.heading("Date", text="Date", anchor=CENTER)
-        selected_player_matches_tree.heading("Score", text="Score", anchor=CENTER)
+        print('Search Completed')
+        players_match_info_tree.selection_set(selections)
 
-        selected_player_matches_tree.column('#0', width=0, stretch=NO)
-        selected_player_matches_tree.column("MatchID", width="60", anchor=CENTER)
-        selected_player_matches_tree.column("Player1", width="120", anchor=CENTER)
-        selected_player_matches_tree.column("Player2", width="120", anchor=CENTER)
-        selected_player_matches_tree.column("Date", width="80", anchor=CENTER)
-        selected_player_matches_tree.column("Score", width="120", anchor=CENTER)
+    search_Frame = Frame(ws)
+    search_Frame.grid(row=0, column=0, columnspan=5)
+    search_label = tk.Label(search_Frame, text="Search Player:")
+    search_label.grid(row=0, column=0, padx=10, pady=10, sticky=tk.W)
+    search_entry = tk.Entry(search_Frame, width=15)
+    search_entry.grid(row=0, column=1, pady=10, sticky=tk.E, rowspan=1)
+    search_btn = tk.Button(search_Frame, text="Search", width=10, command=search)
+    search_btn.grid(row=0, column=2, padx=10, pady=10)
 
-        selected_player_matches_scroll = Scrollbar(root)
-        selected_player_matches_scroll.grid(column=4, row=6)
-        selected_player_matches_tree.configure(yscrollcommand=selected_player_matches_scroll.set)
-        selected_player_matches_scroll.configure(command=selected_player_matches_tree.yview)
-
-        # temp dict
-        selected_player_matches = {}
-        # Loop through all past match and add selected player past matches
-        for past_matches in past_match.values():
-            if past_matches['Player1'][:-2] == selected_player_name or past_matches['Player2'][:-2] == selected_player_name:
-                selected_player_matches[len(selected_player_matches)+1] = past_matches
-            
-        # Loop through the temp dict and insert into treeview 
-        for k,v in selected_player_matches.items():
-            selected_player_matches_tree.insert(parent='', index='end', text="Parent", values=(k,v['Player1'], v['Player2'], v['Date'], v['Score']))           
-
+    #======== Filter Player Info ==========#
     # Drop-down Menu showing filter options
-    filter_options = ["Highest Position","Most Active","Least Active","Most Wins","Most Loss"]
-    option = StringVar(ws)
-    option.set(filter_options[0]) #Default Value
+    filter_options = ["Highest Position","Lowest Position","Most Active","Least Active","Most Wins","Most Loss"]
 
     # Get the Selected Filter Option
     def getFilterOption(*args):
         global selected_option
-        selected_option = option.get()
-        print(selected_option)
+        selected_option = filter_player_menu.get()
         
-    filter_player_menu = OptionMenu(ws, option, *filter_options,command=getFilterOption)
-    filter_player_menu.grid(row=0, column=1)
+    filter_menu_label = Label(search_Frame, text="Filter By:")    
+    filter_menu_label.grid(row=0, column=3, padx=10, pady=10, sticky=tk.W)   
+    filter_player_menu = ttk.Combobox(search_Frame,values=filter_options)
+    filter_player_menu.set("Select an option")
+    filter_player_menu.grid(row=0, column=4, pady=10, sticky=tk.E, rowspan=1)
+    filter_player_menu.bind("<<ComboboxSelected>>", getFilterOption)
 
+    # Clear Treeview
     def clearPlayerinformation():
         players_match_info_tree.delete(*players_match_info_tree.get_children())
 
+    # Populate Treeview
     def loadFilteredData():
+
+        #======= Highest Position ======#
+        try:
+            if selected_option == "Highest Position":
+                # clear the view
+                clearPlayerinformation()
+                highest_position_data = OrderedDict(sorted(total_players_dict.items(), key=lambda i: i[1]['position']))    
+                # insert filtered data
+                for p_info in highest_position_data.values():
+                    players_match_info_tree.insert(parent='', index='end', values=(p_info["name"],p_info["position"],p_info["match_played"],p_info["match_won"],p_info["match_loss"],"{:.2f}".format(winRate)))
+
+        #======= Lowest Position ======#
+            if selected_option == "Lowest Position":
+                # clear the view
+                clearPlayerinformation()
+                highest_position_data = OrderedDict(sorted(total_players_dict.items(), key=lambda i: i[1]['position']))    
+                # insert filtered data
+                for p_info in highest_position_data.values():
+                    players_match_info_tree.insert(parent='', index='0', values=(p_info["name"],p_info["position"],p_info["match_played"],p_info["match_won"],p_info["match_loss"],"{:.2f}".format(winRate)))
+
         #======= Most Active ======#
-        if selected_option == "Most Active":
-            # clear the view
-            clearPlayerinformation()
-            most_active_data = OrderedDict(sorted(total_players_dict.items(), key=lambda i: i[1]['match_played']))    
-            # insert filtered data
-            for p_info in most_active_data.values():
-                players_match_info_tree.insert(parent='', index='0', values=(p_info["name"],p_info["position"],p_info["match_played"],p_info["match_won"],p_info["match_loss"],"{:.2f}".format(winRate)))
+            if selected_option == "Most Active":
+                # clear the view
+                clearPlayerinformation()
+                most_active_data = OrderedDict(sorted(total_players_dict.items(), key=lambda i: i[1]['match_played']))    
+                # insert filtered data
+                for p_info in most_active_data.values():
+                    players_match_info_tree.insert(parent='', index='0', values=(p_info["name"],p_info["position"],p_info["match_played"],p_info["match_won"],p_info["match_loss"],"{:.2f}".format(winRate)))
 
         #======= Least Active ======#
-        if selected_option == "Least Active":
-            # clear the view
-            clearPlayerinformation()
-            least_active_data = OrderedDict(sorted(total_players_dict.items(), key=lambda i: i[1]['match_played']))    
-            # insert filtered data
-            for p_info in least_active_data.values():
-                players_match_info_tree.insert(parent='', index='end', values=(p_info["name"],p_info["position"],p_info["match_played"],p_info["match_won"],p_info["match_loss"],"{:.2f}".format(winRate)))
-        
+            if selected_option == "Least Active":
+                # clear the view
+                clearPlayerinformation()
+                least_active_data = OrderedDict(sorted(total_players_dict.items(), key=lambda i: i[1]['match_played']))    
+                # insert filtered data
+                for p_info in least_active_data.values():
+                    players_match_info_tree.insert(parent='', index='end', values=(p_info["name"],p_info["position"],p_info["match_played"],p_info["match_won"],p_info["match_loss"],"{:.2f}".format(winRate)))
+
         #======= Most Wins ======#
-        if selected_option == "Most Wins":
-            # clear the view
-            clearPlayerinformation()
-            most_wins_data = OrderedDict(sorted(total_players_dict.items(), key=lambda i: i[1]['match_won']))   
-            # insert filtered data
-            for p_info in most_wins_data.values():
-                players_match_info_tree.insert(parent='', index='0', values=(p_info["name"],p_info["position"],p_info["match_played"],p_info["match_won"],p_info["match_loss"],"{:.2f}".format(winRate)))
+            if selected_option == "Most Wins":
+                # clear the view
+                clearPlayerinformation()
+                most_wins_data = OrderedDict(sorted(total_players_dict.items(), key=lambda i: i[1]['match_won']))   
+                # insert filtered data
+                for p_info in most_wins_data.values():
+                    players_match_info_tree.insert(parent='', index='0', values=(p_info["name"],p_info["position"],p_info["match_played"],p_info["match_won"],p_info["match_loss"],"{:.2f}".format(winRate)))
 
         #======= Least Wins ======#
-        if selected_option == "Most Loss":
-            # clear the view
-            clearPlayerinformation()
-            most_wins_data = OrderedDict(sorted(total_players_dict.items(), key=lambda i: i[1]['match_loss']))   
-            # insert filtered data
-            for p_info in most_wins_data.values():
-                players_match_info_tree.insert(parent='', index='0', values=(p_info["name"],p_info["position"],p_info["match_played"],p_info["match_won"],p_info["match_loss"],"{:.2f}".format(winRate)))
+            if selected_option == "Most Loss":
+                # clear the view
+                clearPlayerinformation()
+                most_wins_data = OrderedDict(sorted(total_players_dict.items(), key=lambda i: i[1]['match_loss']))   
+                # insert filtered data
+                for p_info in most_wins_data.values():
+                    players_match_info_tree.insert(parent='', index='0', values=(p_info["name"],p_info["position"],p_info["match_played"],p_info["match_won"],p_info["match_loss"],"{:.2f}".format(winRate)))
+        except NameError:
+            ws.lower()
+            messagebox.showwarning("Select an Option","No Option Selected")
+            ws.focus_set()
+            ws.tkraise()
+    # Filter Button
+    btn_filter_players = Button(search_Frame, text="Filter", command=loadFilteredData)
+    btn_filter_players.grid(row=0, column=5, padx=10)
 
+    #========== View Selected Player Match History ==========#
+    def viewSelectedPlayerMatches():
 
-    btn_selected_player_matches = Button(ws, text="View Player Matches", command=viewPlayerMatches)
-    btn_selected_player_matches.grid(row=1, column=0, pady=10)    
+        # initialize Treeview
+        try:
+            root= Tk()
+            root.title(selected_player_name + "'s Past Matches")
 
-    btn_filter_players = Button(ws, text="Filter", command=loadFilteredData)
-    btn_filter_players.grid(row=1, column=1, pady=10)
+            root.geometry("600x300")
+            selected_player_matches_tree = ttk.Treeview(root)
+            selected_player_matches_tree.grid(row=1, column=0, pady=10)
 
-    
+            # Define columns
+            selected_player_matches_tree['columns'] = ("MatchID", "Player1", "Player2", "Date", "Score")
+            
+            # Column headings
+            selected_player_matches_tree.heading('#0', text='', anchor=CENTER)
+            selected_player_matches_tree.heading("MatchID", text="MatchID", anchor=CENTER)
+            selected_player_matches_tree.heading("Player1", text="Player1", anchor=CENTER)
+            selected_player_matches_tree.heading("Player2", text="Player2", anchor=CENTER)
+            selected_player_matches_tree.heading("Date", text="Date", anchor=CENTER)
+            selected_player_matches_tree.heading("Score", text="Score", anchor=CENTER)
+            
+            # Format columns
+            selected_player_matches_tree.column('#0', width=0, stretch=NO)
+            selected_player_matches_tree.column("MatchID", width="60", anchor=CENTER)
+            selected_player_matches_tree.column("Player1", width="120", anchor=CENTER)
+            selected_player_matches_tree.column("Player2", width="120", anchor=CENTER)
+            selected_player_matches_tree.column("Date", width="80", anchor=CENTER)
+            selected_player_matches_tree.column("Score", width="120", anchor=CENTER)
 
+            # Scrollbar
+            selected_player_matches_scroll = Scrollbar(root)
+            selected_player_matches_scroll.grid(column=2, row=1)
+            selected_player_matches_tree.configure(yscrollcommand=selected_player_matches_scroll.set)
+            selected_player_matches_scroll.configure(command=selected_player_matches_tree.yview)
 
+            # Getting Selected Player Matches
+            selected_player_matches = {}
+            for past_matches in past_match.values():
+                if past_matches['Player1'][:-2] == selected_player_name or past_matches['Player2'][:-2] == selected_player_name:
+                    selected_player_matches[len(selected_player_matches)+1] = past_matches
+            for k,v in selected_player_matches.items():
+                selected_player_matches_tree.insert(parent='', index='end', text="Parent", values=(k,v['Player1'], v['Player2'], v['Date'], v['Score']))           
+            
+        except NameError:
+            root.withdraw()
+            ws.lower()
+            messagebox.showwarning("No Player Selected", "No Player Selected!")
+            ws.focus_set()
+            ws.tkraise()
+        
+        # def filterFirstName(*args):
+        #     print("Hello")
+        #     ItemsOnTreeView = selected_player_matches_tree.get_children()
+        #     search = root.search_ent_var.get().capitalize()
+        #     print("Hello")
+        #     for eachItem in ItemsOnTreeView:
+        #         print(eachItem)
+        #         if search in selected_player_matches_tree.item(eachItem)['values'][2]:
+        #             search_var = selected_player_matches_tree.item(eachItem)['values']
+        #             selected_player_matches_tree.delete(eachItem)
+        #             selected_player_matches_tree.insert("",0,values=search_var)  
 
-    
+        #     for k,v in selected_player_matches.items():
+        #         Wselected_player_matches_tree.insert(parent='', index='end', text="Parent", values=(k,v['Player1'], v['Player2'], v['Date'], v['Score']))
 
+        # search_ent_var = root.search_ent_var= tk.StringVar(value='asdf')
+
+        # search_by = ttk.Combobox(root, values = selected_player_matches_tree['columns'])
+        # search_by.current(2)
+        # search_by.grid(row =0, column=0)
+
+        # search_ent = Entry(root, textvariable = search_ent_var)
+        # search_ent.grid(row=0, column=1,padx=10)
+
+        # search_ent_var.trace("w", filterFirstName)   
+           
+    # View Selected Player Matches Button
+    btn_selected_player_matches = Button(ws, text="View Selected Player Matches", command=viewSelectedPlayerMatches)
+    btn_selected_player_matches.grid(row=2, column=0, pady=10)    
+
+#============================= Withdraw A Player From Ladder ==============================#
 def withdrawPlayerList():
+    
+    # Initialize Listbox
     root = Tk()
     root.title("Remove a player")
     root.geometry("400x400")
@@ -302,11 +400,11 @@ def withdrawPlayerList():
     for players in total_players_list:
         players_listbox.insert("end", players)
 
-    # remove from total_players_list list
+    # remove from total_players_list 
     def withdrawPlayer():
         player_to_remove = players_listbox.get(players_listbox.curselection())
 
-        # remove player from OG txt file and output new file without removed player
+        # Remove from ladder.txt
         with open("ladder.txt", "r") as f:
             lines = f.readlines()
         with open("ladder.txt", "w") as f:
@@ -314,10 +412,11 @@ def withdrawPlayerList():
                 if line.strip("\n") != player_to_remove:
                     f.write(line)
             f.close()
-        # Remove from ladder.txt
+
+        # Remove from total_players_list[]
         total_players_list.remove(player_to_remove)
 
-        # Remove from player_dict.txt
+        # Remove from player_dict.txt{}
         for id, p_info in total_players_dict.copy().items():
             for key in p_info:
                 if p_info[key] == player_to_remove:
@@ -335,7 +434,7 @@ def withdrawPlayerList():
             with open("player_dict.txt", "w") as fout:
                 fout.writelines(lines[1:])
 
-        # Withdraw Player from Data.txt
+        # Remove from Data.txt
         f = open("data.txt", "a")
         f.write("-" + player_to_remove + "/" + date.today().strftime("%d-%m-%Y"))
         f.write("\n")
@@ -343,15 +442,20 @@ def withdrawPlayerList():
 
         # Clear List Box
         players_listbox.delete(0, END)
+
         # Recreate List Box without removed player
         for players in total_players_list:
             players_listbox.insert("end", players)
 
+    # Withdraw Button
     withdraw_plyr_btn = Button(root, text="Click to Withdraw", command=withdrawPlayer)
     withdraw_plyr_btn.pack(pady=10)
 
 
+#============================= Issue Challenge to Another Player (Create Match) ==========================#
 def issueChallenge():
+    
+    # Callbacks
     def selectPlayerOne(event):
         global selected_item_p1
         selected_item_p1 = playerOne_Tree.focus()
@@ -362,11 +466,12 @@ def issueChallenge():
         selected_item_p2 = playerTwo_Tree.focus()
         selected_item_p2 = playerTwo_Tree.item(selected_item_p2)["values"]
 
+    # Initialize
     root = Tk()
     root.title("Create a Match")
     root.geometry("800x650")
 
-    # Player One Tree
+    # Initialize Player One Tree
     player1_label = Label(root, text="PLAYER 1", font=("Times New Roman bold", 15))
     player1_label.grid(row=0, column=0)
     playerOne_Tree = ttk.Treeview(root)
@@ -388,7 +493,7 @@ def issueChallenge():
     vslabel = Label(root, text="VS", font=("Times New Roman bold", 20))
     vslabel.grid(row=1, column=1)
 
-    # Player Two tree
+    # Initalize Player Two tree
     player2_label = Label(root, text="PLAYER 2", font=("Times New Roman bold", 15))
     player2_label.grid(row=0, column=2)
     playerTwo_Tree = ttk.Treeview(root)
@@ -413,10 +518,9 @@ def issueChallenge():
     playerOne_Tree_detached_items = []
     playerTwo_Tree_detached_items = []
 
+    #========== Player 1 Selection =========#
     def selectPlayer1():
-        # id_map = {'10': 'A','11': 'B','12': 'C','13': 'D','14': 'E','15': 'F'}
         playerTwo_Tree_detached_items.sort(reverse=True)
-
         # Reattach players
         for i in playerTwo_Tree_detached_items:
             playerTwo_Tree.reattach(i, "", 0)
@@ -439,6 +543,7 @@ def issueChallenge():
 
     playerOne_Tree.bind("<<TreeviewSelect>>", selectPlayerOne)
 
+    #========== Player 2 Selection =========#
     def selectPlayer2():
         playerOne_Tree_detached_items.sort(reverse=True)
 
@@ -461,10 +566,9 @@ def issueChallenge():
         player2_Entry.configure(state="disabled")
 
         return str(selected_item_p2[1]) + " " + str(selected_item_p2[0])
-
     playerTwo_Tree.bind("<<TreeviewSelect>>", selectPlayerTwo)
 
-    # Datepicker
+    #=============== DatePicker ===================#
     Date_frame = Frame(root, bg="grey")
     Date_frame.grid(row=5, column=2, sticky=NSEW)
     Date_label = Label(root, text="DATE OF MATCH", font=("Times New Roman bold", 15))
@@ -480,6 +584,7 @@ def issueChallenge():
         match_date_Entry.configure(state="disabled")
         return cal.get_date()
 
+    #============================ Create the Match ===============================#
     def createMatch():
         upcoming_match[len(upcoming_match) + 1] = {
             "Player1": selected_item_p1[1] + " " + str(selected_item_p1[0]),

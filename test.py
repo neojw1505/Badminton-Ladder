@@ -2,18 +2,6 @@ import tkinter
 from tkinter import *
 from tkinter import ttk
 
-def filterFirstName(*args):
-    ItemsOnTreeView = myTree.get_children()
-    search = search_ent_var.get().capitalize()
-
-    for eachItem in ItemsOnTreeView:
-        print(eachItem)
-        if search in myTree.item(eachItem)['values'][2]:
-            search_var = myTree.item(eachItem)['values']
-            myTree.delete(eachItem)
-
-            myTree.insert("",0,values=search_var)    
-column = ['passport','Fullname',"DOb"]
 data = {
     1:{'passport':"38123122",'Fullname':"Allahu AKhbra", "DOb":'10-mar-1984'},
     2:{'passport':"1175312",'Fullname':"JOHN AKhbra", "DOb":'10-mar-1984'},
@@ -28,16 +16,7 @@ data = {
 root = Tk()
 root.geometry("600x500")
 
-search_ent_var = StringVar()
-
-search_by = ttk.Combobox(root, values = column)
-search_by.current(2)
-search_by.grid(row =0, column=0)
-
-search_ent = Entry(root, textvariable = search_ent_var)
-search_ent.grid(row=0, column=1,padx=10)
-
-search_ent_var.trace("w", filterFirstName)
+column = ['passport','Fullname',"DOb"]
 
 tree_Frame = Frame(root)
 tree_Frame.place(x=10,y=50, width =500, height=300)
@@ -52,5 +31,26 @@ myTree.pack()
 
 for k,v in data.items():
     myTree.insert(parent="",index=END, values=(k,v['passport'],v['Fullname'],v['DOb']))
+
+def filterFirstName(*args):
+    ItemsOnTreeView = myTree.get_children()
+    search = search_ent_var.get().capitalize()
+    for eachItem in ItemsOnTreeView:
+        print(eachItem)
+        if search in myTree.item(eachItem)['values'][2]:
+            search_var = myTree.item(eachItem)['values']
+            myTree.delete(eachItem)
+            myTree.insert("",0,values=search_var)    
+
+search_ent_var = StringVar()
+
+search_by = ttk.Combobox(root, values = column)
+search_by.current(2)
+search_by.grid(row =0, column=0)
+
+search_ent = Entry(root, textvariable = search_ent_var)
+search_ent.grid(row=0, column=1,padx=10)
+
+search_ent_var.trace("w", filterFirstName)
 
 root.mainloop()    
